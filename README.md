@@ -26,8 +26,8 @@ A Model Context Protocol (MCP) server for storing and retrieving memories with c
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd agetron
+git clone https://github.com/imyashkale/mcp-memory-server.git
+cd mcp-memory-server
 ```
 
 2. Install dependencies:
