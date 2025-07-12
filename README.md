@@ -1,255 +1,136 @@
 # MCP Memory Server
 
-A Model Context Protocol (MCP) server for storing and retrieving memories with comprehensive logging support.
+A simple memory storage server for Claude using the Model Context Protocol (MCP). Perfect for hobby projects or learning how to build your first MCP server!
 
-## Features
+This server lets Claude remember things across conversations by storing and retrieving memories with optional tags.
 
-- **Memory Storage**: Store text memories with optional tags for categorization
-- **Memory Retrieval**: Search and retrieve memories based on content or tags
-- **Memory Management**: List, delete, and clear memories
-- **Comprehensive Logging**: Detailed logging for all operations with configurable log levels
-- **HTTP API**: RESTful API for integration with Claude and other MCP clients
-- **Docker Support**: Containerized deployment for easy deployment
-- **Stdio Support**: Native MCP stdio transport for direct integration
+## What It Does
+
+Store text memories that Claude can search and retrieve later. Great for:
+- Remembering user preferences 
+- Storing project notes
+- Building knowledge bases
+- Learning MCP development
 
 ## Available Tools
 
 - `store_memory`: Store a memory with optional tags
-- `retrieve_memories`: Retrieve memories based on a search query
-- `list_memories`: List all stored memories
-- `delete_memory`: Delete a memory by ID
-- `clear_memories`: Clear all stored memories
+- `retrieve_memories`: Search memories by content
+- `list_memories`: Show all stored memories  
+- `delete_memory`: Delete a specific memory
+- `clear_memories`: Delete all memories
 
-## Installation
+## Quick Start
 
-### Local Installation
+### 1. Install & Run
 
-1. Clone the repository:
 ```bash
+# Clone and setup
 git clone https://github.com/imyashkale/mcp-memory-server.git
 cd mcp-memory-server
-```
-
-2. Install dependencies:
-```bash
 npm install
-```
-
-3. Start the server:
-```bash
 npm start
 ```
 
-### Docker Installation
+Server runs on `http://localhost:3000`
 
-1. Build the Docker image:
-```bash
-docker build -t mcp-memory-server .
-```
-
-2. Run the container:
-```bash
-docker run -d -p 3000:3000 --name mcp-memory mcp-memory-server
-```
-
-## Usage
-
-### Adding to Claude
-
-To add this MCP server to Claude, use the following command:
+### 2. Add to Claude
 
 ```bash
-claude mcp add memory --url http://localhost:3000/message
+claude mcp add memory http://localhost:3000/message --transport http
 ```
 
-Or if using Docker with a custom port:
+That's it! Claude can now use the memory tools.
 
-```bash
-claude mcp add memory --url http://localhost:YOUR_PORT/message
+## Basic Usage
+
+Once connected to Claude, you can:
+
 ```
+# Store memories
+"Remember that I like both dogs and cats"
 
-### Environment Variables
+# Retrieve memories  
+"What do you remember about my pet preferences?"
 
-- `PORT`: Server port (default: 3000)
-- `LOG_LEVEL`: Logging level - `error`, `warn`, `info`, `debug` (default: `info`)
-
-### API Testing
-
-Test the server using curl:
-
-```bash
-# List available tools
-curl -X POST http://localhost:3000/message \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}'
-
-# Store a memory
-curl -X POST http://localhost:3000/message \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": 2,
-    "method": "tools/call",
-    "params": {
-      "name": "store_memory",
-      "arguments": {
-        "content": "Remember to buy groceries",
-        "tags": ["personal", "todo"]
-      }
-    }
-  }'
-
-# Retrieve memories
-curl -X POST http://localhost:3000/message \
-  -H "Content-Type: application/json" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": 3,
-    "method": "tools/call",
-    "params": {
-      "name": "retrieve_memories",
-      "arguments": {
-        "query": "groceries"
-      }
-    }
-  }'
+# List all memories
+"Show me all my stored memories"
 ```
-
-## Logging
-
-The server includes comprehensive logging for all operations:
-
-- **Request/Response Logging**: All MCP requests and responses are logged
-- **Tool Execution Logging**: Each tool execution is logged with parameters and results
-- **Error Logging**: All errors are logged with context information
-- **Performance Logging**: Request timing and performance metrics
-
-Set the `LOG_LEVEL` environment variable to control logging verbosity:
-- `error`: Only errors
-- `warn`: Warnings and errors
-- `info`: General information, warnings, and errors (default)
-- `debug`: All logging including detailed debugging information
 
 ## Development
 
-### Running in Development Mode
-
+### Run in dev mode (auto-restart)
 ```bash
 npm run dev
 ```
 
-This starts the server with file watching for automatic restarts.
+### Project Structure
+- `index.js` - Main server file with MCP tools
+- `package.json` - Dependencies and scripts
+- In-memory storage (resets on restart)
 
-### Testing
+### Environment Variables
+- `PORT` - Server port (default: 3000)
+- `LOG_LEVEL` - Logging: error, warn, info, debug (default: info)
 
-Test the server functionality:
-
-```bash
-# Test local server
-npm start &
-curl -X POST http://localhost:3000/message -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}'
-
-# Test Docker container
-docker run -d -p 3000:3000 --name test-mcp mcp-memory-server
-curl -X POST http://localhost:3000/message -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}'
-docker stop test-mcp && docker rm test-mcp
-```
-
-## Architecture
-
-- **Express Server**: HTTP server for MCP message handling
-- **MCP SDK**: Official Model Context Protocol SDK for request/response handling
-- **In-Memory Storage**: Simple in-memory storage for memories (data persists only during server runtime)
-- **Structured Logging**: JSON-formatted logging with configurable levels
-
-## Memory Data Structure
+## Memory Format
 
 Each memory contains:
-- `id`: Unique identifier (auto-incremented)
-- `content`: The memory content text
-- `tags`: Array of categorization tags
-- `timestamp`: ISO 8601 creation timestamp
+- `id` - Unique number
+- `content` - The memory text
+- `tags` - Optional categorization tags
+- `timestamp` - When it was created
 
-## Integration Examples
+## Docker (Optional)
 
-### With Claude Desktop
+```bash
+# Build and run
+docker build -t mcp-memory-server .
+docker run -d -p 3000:3000 mcp-memory-server
 
-Add to your Claude Desktop configuration:
-
-```json
-{
-  "mcpServers": {
-    "memory": {
-      "command": "node",
-      "args": ["/path/to/your/index.js"],
-      "env": {
-        "LOG_LEVEL": "info"
-      }
-    }
-  }
-}
+# Add to Claude with Docker
+claude mcp add memory http://localhost:3000/message --transport http
 ```
 
-### With Docker Compose
+## What's Next?
 
-```yaml
-version: '3.8'
-services:
-  mcp-memory:
-    build: .
-    ports:
-      - "3000:3000"
-    environment:
-      - LOG_LEVEL=info
-    restart: unless-stopped
-```
-
-## License
-
-MIT License
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+This is a basic MCP server to get you started. You can extend it by:
+- Adding persistent storage (database)
+- Adding more search features
+- Building a web interface
+- Adding authentication
 
 ## Troubleshooting
 
-### Common Issues
-
-1. **Port already in use**: Change the PORT environment variable
-2. **Connection refused**: Ensure the server is running and accessible
-3. **Tool not found errors**: Verify the server is properly initialized
-
-### Checking Logs
-
-Monitor server logs for debugging:
-
+**Port in use?** Change the port:
 ```bash
-# Local development
-npm start
-
-# Docker container
-docker logs mcp-memory-server
+PORT=3001 npm start
+claude mcp add memory http://localhost:3001/message --transport http
 ```
 
-### Health Check
-
-Verify server health:
-
+**Connection issues?** Check the server is running:
 ```bash
-curl -X POST http://localhost:3000/message \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}'
+curl -X POST http://localhost:3000/message -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}'
 ```
+
+## Contributing
+
+This is a hobby project, but contributions are welcome! Feel free to:
+- Fork the repository
+- Create a feature branch
+- Make improvements
+- Submit a pull request
+
+## License
+
+MIT License - feel free to use this project for learning, hobby projects, or commercial use.
 
 ## Support
 
-For issues and questions:
-1. Check the logs for error messages
-2. Verify your configuration
-3. Test with curl commands
-4. Submit an issue with logs and configuration details
+- **Issues**: Open an issue on GitHub for bugs or feature requests
+- **Questions**: Check the MCP documentation or start a discussion
+- **MCP Resources**: [Model Context Protocol Docs](https://modelcontextprotocol.io)
+
+---
+
+Built with Node.js and the official MCP SDK. Perfect for learning MCP development!
