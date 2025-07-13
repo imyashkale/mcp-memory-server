@@ -89,7 +89,7 @@ docker build -t mcp-memory-server .
 docker run -d -p 3000:3000 mcp-memory-server
 
 # Add to Claude with Docker
-claude mcp add memory http://localhost:3000/message --transport http
+claude mcp add memory --transport http -- http://localhost:3000/message
 ```
 
 ## What's Next?
