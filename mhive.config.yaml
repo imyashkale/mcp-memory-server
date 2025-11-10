@@ -1,0 +1,81 @@
+name: mcp-memory-server
+description: A simple memory storage server for Claude using the Model Context Protocol (MCP)
+version: "1.0.0"
+repository: https://github.com/imyashkale/mcp-memory-server.git
+
+# Server configuration
+server:
+  # Port where the MCP server will be exposed
+  port: 3000
+  # Transport protocol (http, stdio, sse)
+  transport: http
+  # API endpoint path
+  endpoint: /message
+  # Health check endpoint
+  healthCheck: /health
+
+envs:
+  PORT: 3000
+  LOG_LEVEL: debug
+  NODE_ENV: development
+
+# Docker configuration
+docker:
+  dockerfile: ./Dockerfile
+  buildContext: .
+  baseImage: node:18-alpine
+  buildArgs:
+    NODE_ENV: production
+
+# Health check configuration
+healthCheck:
+  enabled: true
+  interval: 30s
+  timeout: 5s
+  retries: 3
+  # Use curl or similar to check health
+  command: curl -f http://localhost:3000/health || exit 1
+
+# Security and networking
+security:
+  # Enable CORS
+  cors:
+    enabled: false
+    origins:
+      - http://localhost:3000
+  # Authentication (if needed)
+  authentication:
+    enabled: false
+    type: none
+  # Rate limiting
+  rateLimit:
+    enabled: false
+    requests: 100
+    window: 60000
+
+# Logging configuration
+logging:
+  level: info  # error, warn, info, debug
+  format: json
+  output: stdout
+
+# Resource limits and scaling
+resources:
+  # Memory usage
+  memory:
+    request: 128m
+    limit: 512m
+  # CPU usage
+  cpu:
+    request: 100m
+    limit: 500m
+  # Storage (if applicable)
+  storage:
+    type: memory
+    size: 100m
+
+# Optional: Multi-instance deployment configuration
+deployment:
+  # Number of replicas (if using orchestration)
+  replicas: 1
+  
